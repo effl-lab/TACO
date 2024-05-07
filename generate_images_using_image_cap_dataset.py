@@ -21,8 +21,6 @@ from tqdm import tqdm
 # ============
 device = 'cuda'
 
-from pytorch_fid.fid_score import calculate_fid_given_paths
-
 def compute_psnr(a, b):
     mse = torch.mean((a - b)**2).item()
     return -10 * math.log10(mse)

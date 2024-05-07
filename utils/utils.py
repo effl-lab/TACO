@@ -88,7 +88,7 @@ class Config(dict):
 class RateDistortionLoss(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
-    def __init__(self, lmbda=1e-2, epochs=50, clip_model_name = "openai/clip-vit-base-patch32", multimodal_coefficient=0.005, lpips_coefficient = 1.0):
+    def __init__(self, lmbda=1e-2, epochs=50, clip_model_name = "openai/clip-vit-base-patch32", jit_coefficient=0.005, lpips_coefficient = 1.0):
         super().__init__()
         self.mse = nn.MSELoss()
         self.lmbda = lmbda
@@ -98,7 +98,7 @@ class RateDistortionLoss(nn.Module):
         self.loss_fn_alex = lpips.LPIPS(net='alex') # best forward scores
         self.loss_fn_alex.net.requires_grad_(False)
 
-        self.k_M = multimodal_coefficient # Multimodal 어쩌구 loss
+        self.k_J = jit_coefficient # Multimodal 어쩌구 loss
         self.beta = 40.0 # Multimodal 어쩌구 loss에 들어감
 
         self.text_encoder = CLIPTextModelWithProjection.from_pretrained(clip_model_name).eval()
@@ -129,7 +129,7 @@ class RateDistortionLoss(nn.Module):
         return (caption_loss + image_loss) / 2.0
     ################################################
 
-    def get_multimodal_loss(self, output, target, text_tokens, attention_mask) :
+    def get_joint_image_text_loss(self, output, target, text_tokens, attention_mask) :
         
         self.image_encoder = self.image_encoder.to(output["x_hat"].device)
         self.text_encoder = self.text_encoder.to(output["x_hat"].device)
@@ -154,7 +154,7 @@ class RateDistortionLoss(nn.Module):
 
         return joint_image_text_loss
 
-    def forward(self, epoch, output, target, text_tokens, attention_mask): # epoch: 0부터 시작
+    def forward(self, output, target, text_tokens, attention_mask):
         N, _, H, W = target.size()
         out = {}
         num_pixels = N * H * W
@@ -171,9 +171,9 @@ class RateDistortionLoss(nn.Module):
         out["joint_image_text_loss"] = torch.zeros(1)
         out["perceptual_loss"] = torch.zeros(1)        
 
-        if self.k_M > 0.0:
-            out["joint_image_text_loss"] = self.get_multimodal_loss(output, target, text_tokens, attention_mask)
-            out["loss"] +=  self.k_M * out["joint_image_text_loss"]
+        if self.k_J > 0.0:
+            out["joint_image_text_loss"] = self.get_joint_image_text_loss(output, target, text_tokens, attention_mask)
+            out["loss"] +=  self.k_J * out["joint_image_text_loss"]
         if self.k_P > 0.0 :
             self.loss_fn_alex = self.loss_fn_alex.to(target.device)
             out["perceptual_loss"] = self.loss_fn_alex(output["x_hat"], target).mean()
@@ -233,6 +233,10 @@ def compute_psnr(a, b):
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Example training script.")
+
+    parser.add_argument(
+        "--dist_port", type=int, default=6006, required=True, help="dist_port(default: %(default)s)"
+    )
     
     parser.add_argument(
         "--train_dataset_root_path", type=str, required=True, help="MSCOCO root path (e.g. /data/MSCOCO)"
@@ -243,11 +247,7 @@ def parse_args(argv):
     )
 
     parser.add_argument(
-        "--multimodal_loss_coefficient", type=float, default=0.005, required=True, help="the coefficient of multi-modal loss(default: %(default)s)"
-    )
-
-    parser.add_argument(
-        "--dist_port", type=int, default=6006, required=True, help="dist_port(default: %(default)s)"
+        "--joint_image_text_loss_coefficient", type=float, default=0.005, required=True, help="the coefficient of multi-modal loss(default: %(default)s)"
     )
     
     parser.add_argument(
@@ -265,6 +265,11 @@ def parse_args(argv):
         help="Learning rate (default: %(default)s)",
     )
     parser.add_argument(
+        "--aux-learning-rate",
+        default=1e-3,
+        help="Auxiliary loss learning rate (default: %(default)s)",
+    )
+    parser.add_argument(
         "-n",
         "--num-workers",
         type=int,
@@ -280,12 +285,6 @@ def parse_args(argv):
     )
     parser.add_argument(
         "--batch-size", type=int, default=8, help="Batch size (default: %(default)s)"
-    )
-
-    parser.add_argument(
-        "--aux-learning-rate",
-        default=1e-3,
-        help="Auxiliary loss learning rate (default: %(default)s)",
     )
 
     parser.add_argument(
@@ -310,9 +309,6 @@ def parse_args(argv):
         "--lr_epoch", nargs='+', type=int
     )
 
-    parser.add_argument(
-        "--real", action="store_true", default=True
-    )
     args = parser.parse_args(argv)
     return args
 

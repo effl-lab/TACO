@@ -1,6 +1,3 @@
-# train example
-# python -u train.py --train_dataset_root_path /data/MSCOCO --lambda 0.0004 --epochs 50 --lr_epoch 45 48 --batch-size 8 --seed 100 --multimodal_loss_coefficient 0.0025 --lpips_coefficient 3.50 --dist_port 6411
-
 import os
 import random
 import sys
@@ -71,7 +68,7 @@ def train_one_epoch(
                 f'\tLoss: {out_criterion["loss"].item():.3f} |'
                 f'\tMSE loss: {out_criterion["mse_loss"].item():.3f} |'
                 f'\tLPIPS loss: {out_criterion["perceptual_loss"].item():.3f} |'
-                f'\tMultimodal Semantic Consistent loss: {out_criterion["joint_image_text_loss"].item():.3f} |'
+                f'\tJoint image-text loss: {out_criterion["joint_image_text_loss"].item():.3f} |'
                 f'\tBpp loss: {out_criterion["bpp_loss"].item():.2f} |'
                 f"\tAux loss: {aux_loss.item():.2f}"
             )
@@ -194,7 +191,7 @@ def main(opts):
     
     lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
 
-    criterion = RateDistortionLoss(lmbda=opts.lmbda, epochs=opts.epochs, clip_model_name = clip_model_name, multimodal_coefficient=opts.multimodal_loss_coefficient, lpips_coefficient = opts.lpips_coefficient)
+    criterion = RateDistortionLoss(lmbda=opts.lmbda, epochs=opts.epochs, clip_model_name = clip_model_name, jit_coefficient=opts.joint_image_text_loss_coefficient, lpips_coefficient = opts.lpips_coefficient)
 
     if node_rank == 0:  
 
@@ -206,7 +203,7 @@ def main(opts):
 
         logger.info(f"batch_size : {opts.batch_size}")
 
-        logger.info(f"Multimodal loss coefficient: {opts.multimodal_loss_coefficient}")
+        logger.info(f"Joint image-text loss coefficient: {opts.joint_image_text_loss_coefficient}")
         logger.info(f"LPIPS coefficient: {opts.lpips_coefficient}")
 
     best_psnr = 0.0
@@ -472,7 +469,7 @@ def ddp_or_single_process(argvs):
 
     checkpoint = "None"
     
-    save_path = f'./checkpoint/exp_lambda_{opts.lmbda}_seed_{opts.seed}_batch_size_{opts.batch_size}_multimodal_loss_coefficient_{opts.multimodal_loss_coefficient}_lpips_coefficient_{opts.lpips_coefficient}'
+    save_path = f'./checkpoint/exp_lambda_{opts.lmbda}_seed_{opts.seed}_batch_size_{opts.batch_size}_joint_image_text_loss_coefficient_{opts.joint_image_text_loss_coefficient}_lpips_coefficient_{opts.lpips_coefficient}'
     
     if os.path.exists(save_path):
         logger = logger_setup(log_file_name = 'logs', log_file_folder_name = save_path)
@@ -503,7 +500,7 @@ def ddp_or_single_process(argvs):
     torch.backends.cudnn.benchmark = False
 
     logger.info(f"seed : {opts.seed}")
-    logger.info(f"exp name : exp_lambda_{opts.lmbda}_seed_{opts.seed}_batch_size_{opts.batch_size}_multimodal_loss_coefficient_{opts.multimodal_loss_coefficient}_lpips_coefficient_{opts.lpips_coefficient}")
+    logger.info(f"exp name : exp_lambda_{opts.lmbda}_seed_{opts.seed}_batch_size_{opts.batch_size}_joint_image_text_loss_coefficient_{opts.joint_image_text_loss_coefficient}_lpips_coefficient_{opts.lpips_coefficient}")
 
     setattr(opts, "checkpoint", checkpoint)
     setattr(opts, "save_path", save_path)
