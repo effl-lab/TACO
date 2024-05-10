@@ -43,8 +43,8 @@ python -u train.py --dist_port (int) --train_dataset_root_path (string) --lpips_
 ## How to inference 
 For testing TACO, you can use the following command:
 ```
-python -u generate_images_using_image_cap_dataset.py --image_folder_root [path for original image data]
---checkpoint [path of the model checkpoint]
+python -u generate_images_using_image_cap_dataset.py --image_folder_root (path for original image data)
+--checkpoint (path of the model checkpoint)
 
 # e.g. python -u generate_mscoco30k.py --image_folder_root /data/MSCOCO/val2014 --checkpoint /checkpoint/pre_trained_ckpt.pth.tar
 ```
