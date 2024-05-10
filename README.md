@@ -1,7 +1,7 @@
 # TACO: <u>T</u>ext-<u>A</u>daptive <u>CO</u>mpression [ICML 2024]
 
-This is the Pytorch repository of the paper "[Neural Image Compression with Text-guided Encoding for both Pixel-level and Perceptual Fidelity (ICML 2024)](https://arxiv.org/abs/2403.02944)." <br>
-[[project page](https://taco-nic.github.io), [paper](https://arxiv.org/abs/2403.02944)]
+This is the Pytorch repository of the paper "[Neural Image Compression with Text-guided Encoding for both Pixel-level and Perceptual Fidelity (ICML 2024)](https://arxiv.org/abs/2403.02944)."  [[project page](https://taco-nic.github.io), [paper](https://arxiv.org/abs/2403.02944)]
+
 
 ## Summary & Architecture
 We propose a compression framework that leverages text information mainly by text-adaptive encoding and training with joint image-text loss. By doing so, we avoid decoding based on text-guided generative models---known for high generative diversity---and effectively utilize the semantic information of text at a global level. 
