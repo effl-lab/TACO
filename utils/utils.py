@@ -280,7 +280,7 @@ def parse_args(argv):
         "--lambda",
         dest="lmbda",
         type=float,
-        default=3,
+        default=0.0004,
         help="Bit-rate distortion parameter (default: %(default)s)",
     )
     parser.add_argument(
@@ -302,7 +302,7 @@ def parse_args(argv):
         "--clip_max_norm",
         default=1.0,
         type=float,
-        help="gradient clipping max norm (default: %(default)s",
+        help="Gradient clipping max norm (default: %(default)s",
     )
 
     parser.add_argument(

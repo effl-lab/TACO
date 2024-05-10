@@ -39,7 +39,7 @@ def parse_args_for_inference(argv):
     )
 
     parser.add_argument(
-        "--lmbda", type=str, default='0.0004', help="learned lambda rate"
+        "--checkpoint", type=str, default='./checkpoint/0.0004.pth.tar', help="path of the pretrained checkpoint"
     )
 
     args = parser.parse_args(argv)
@@ -63,7 +63,7 @@ def main(argv):
     with open('./materials/mscoco_val41k_img_cap_pair.json', 'r') as f:
         image_cap_dict = json.load(f)
 
-    params_name = f'{args.lmbda}.pth.tar'
+    params_name = f'{args.checkpoint}'
 
     taco_config = model_config()
     net = TACO(taco_config, text_embedding_dim = CLIP_text_model.config.hidden_size)
@@ -71,7 +71,7 @@ def main(argv):
 
     print(f"checkpoint: {params_name}")
     
-    params_path = f'./checkpoint/{params_name}' 
+    params_path = f'{params_name}' 
 
     state_dict = torch.load(params_path, map_location = device)['state_dict']
     
@@ -105,7 +105,7 @@ def main(argv):
         'lpips': []
         }
 
-    save_folder = f'./compression_mscoco_val30k/{params_name[:-8]}'
+    save_folder = f'./compression_mscoco_val30k'
     if os.path.exists(save_folder):
         shutil.rmtree(save_folder)
     try:
@@ -124,7 +124,7 @@ def main(argv):
         'lpips':0.0
     }
 
-    for img_name in tqdm(image_list, desc=f"compress, lmbda: {args.lmbda}") :
+    for img_name in tqdm(image_list, desc=f"compress:") :
     
         img_path = f'{args.image_folder_root}/{img_name}'
 

@@ -43,7 +43,7 @@ def parse_args_for_inference(argv):
     )
 
     parser.add_argument(
-        "--lmbda", type=str, default='0.0004', help="learned lambda rate"
+        "--checkpoint", type=str, default='0.0004.pth.tar', help="path of the pretrained checkpoint"
     )
 
     args = parser.parse_args(argv)
@@ -59,7 +59,7 @@ def main(argv):
     CLIP_text_model.requires_grad_(False)
     CLIP_tokenizer = AutoTokenizer.from_pretrained(clip_model_name)
 
-    params_name = f'{args.lmbda}.pth.tar'
+    params_name = f'{args.checkpoint}'
 
     taco_config = model_config()
     net = TACO(taco_config, text_embedding_dim = CLIP_text_model.config.hidden_size)
@@ -67,7 +67,7 @@ def main(argv):
 
     print(f"checkpoint: {params_name}")
     
-    params_path = f'./checkpoint/{params_name}' 
+    params_path = f'{params_name}' 
 
     state_dict = torch.load(params_path, map_location = device)['state_dict']
     try:
@@ -103,7 +103,7 @@ def main(argv):
         }
 
     image_folder_name = args.image_folder_root.split('/')[-1]
-    save_folder = f'./compression_{image_folder_name}/{params_name[:-8]}'
+    save_folder = f'./compression_{image_folder_name}'
     if os.path.exists(save_folder):
         shutil.rmtree(save_folder)
     try:
@@ -122,7 +122,7 @@ def main(argv):
         'lpips':0.0
     }
 
-    for img_name, image, caption in tqdm(image_caption_dataset, desc=f"compress, lmbda: {args.lmbda}") :
+    for img_name, image, caption in tqdm(image_caption_dataset, desc=f"compress :") :
     
         img_path = f'{args.image_folder_root}/{img_name}'
 

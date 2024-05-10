@@ -1,43 +1,55 @@
-# TACO: <u>T</u>ext-<u>A</u>daptive <u>CO</u>mpression
+# TACO: <u>T</u>ext-<u>A</u>daptive <u>CO</u>mpression [ICML 2024]
 
-This repository has the source code of "Neural Image Compression with Text-guided Encoding for both Pixel-level and Perceptual Fidelity (ICML 2024)." <br>
-[[project page](https://taco-imagecompression.github.io), [paper](https://arxiv.org/abs/2403.02944)]
+This is the Pytorch repository of the paper "[Neural Image Compression with Text-guided Encoding for both Pixel-level and Perceptual Fidelity (ICML 2024)](https://arxiv.org/abs/2403.02944)." <br>
+[[project page](https://taco-nic.github.io), [paper](https://arxiv.org/abs/2403.02944)]
 
+## Summary & Architecture
+We propose a compression framework that leverages text information mainly by text-adaptive encoding and training with joint image-text loss. By doing so, we avoid decoding based on text-guided generative models---known for high generative diversity---and effectively utilize the semantic information of text at a global level. 
+
+<center>
+<img src="./materials/overall_architecture.png"  style="zoom: 20%;"/>
+</center>
 
 ## How to train
 For training TACO, you can use the following command:
 ```
-python -u train.py --dist_port (integer) --train_dataset_root_path (string) --lpips_coefficient (float) --joint_image_text_loss_coefficient (float) --epochs (int) --learning_rate (float) --aux-learning-rate (float)  --num-workers (int) --lambda (float) --batch-size (int) --patch-size (int int) --seed (int) --clip_max_norm (float) --lr_epoch (int int ...)  
+python -u train.py --dist_port (int) --train_dataset_root_path (string) --lpips_coefficient (float) --joint_image_text_loss_coefficient (float) --epochs (int) --learning_rate (float) --aux-learning-rate (float)  --num-workers (int) --lambda (float) --batch-size (int) --patch-size (int int) --seed (int) --clip_max_norm (float) --lr_epoch (int int)  
 
 # e.g. python -u train.py --dist_port 6411 --train_dataset_root_path /data/MSCOCO --lpips_coefficient 3.50 --joint_image_text_loss_coefficient 0.0025 --epochs 50 --learning_rate 1e-4 --aux-learning-rate 1e-3 --num-workers 8 --lambda 0.0004 --batch-size 8 --patch-size 256 256 --seed 100 --clip_max_norm 1.0 --lr_epoch 45 48 
 ```
 
-The descriptions about each arguments are as followings:
+
+
+<details>
+<summary>Details of each arguments are as followings :</summary>
 
 * dist_port: port for using Distributed Data Parallel (DDP) (default: 6006)
-* train_dataset_root_path: root folder of MSCOCO
+* train_dataset_root_path: root folder of training dataset(e.g. MSCOCO)
 * lpips_coefficient: coefficient of LPIPS loss (default: 1.0)
 * joint_image_text_loss_coefficient: coefficient of joint image-text loss (default: 0.005)
-<!-- * epochs: 
-* learning_rate: 
-* aux-learning-rate: 
-* num-workers: 
-* lambda: 
-* batch-size: 
-* patch-size: 
-* seed: 
-* clip_max_norm: 
-* lr_epoch -->
+* epochs: Number of epochs (default: 50)
+* learning_rate: Learning rate (default: 1e-4)
+* aux-learning-rate: Auxiliary loss learning rate (default: 1e-3)
+* num-workers: Dataloaders threads (default: 8)
+* lambda: Bit-rate distortion parameter (default: 0.0004)
+* batch-size: Batch size (default: 8)
+* patch-size: Size of the patches to be cropped (default: (256, 256))
+* seed: Set random seed for reproducibility
+* clip_max_norm: Gradient clipping max norm (default: 1.0)
+* lr_epoch: Set epoch to schedule the learning rate (default: 45 48)
+
+</details>
 
 ## How to inference 
 For testing TACO, you can use the following command:
 ```
-python -u generate_images_using_image_cap_dataset.py 
+python -u generate_images_using_image_cap_dataset.py --image_folder_root [path for original image data]
+--checkpoint [path of the model checkpoint]
 
-# e.g. python -u generate_mscoco30k.py 
+# e.g. python -u generate_mscoco30k.py --image_folder_root /data/MSCOCO/val2014 --checkpoint /checkpoint/pre_trained_ckpt.pth.tar
 ```
-
-If you have any questions about this, please send a mail to the one of co-first authors (hagyeonglee@postech.ac.kr,  minkyu.kim@postech.ac.kr) 
+## Contact
+If you have any questions, please feel free to contact Hagyeong Lee (hagyeonglee@postech.ac.kr) or Minkyu Kim (minkyu.kim@postech.ac.kr).
 
 ## Citation
 ```
