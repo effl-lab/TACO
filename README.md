@@ -4,7 +4,7 @@
 
 <br>
 
-Hagyeong Lee\*$^1$, Minkyu Kim\*$^1$, Jun-Hyuk Kim $^2$, Seungeon Kim $^2$, Dokwan Oh $^2$, Jaeho Lee $^1$ <br><br>
+Hagyeong Lee\* $^1$, Minkyu Kim\* $^1$, Jun-Hyuk Kim $^2$, Seungeon Kim $^2$, Dokwan Oh $^2$, Jaeho Lee $^1$ <br><br>
 $^1$ Pohang University of Science and Technology (POSTECH)  & $^2$ Samsung Advanced Institute of Technology (SAIT) 
 
 This is the official Github page for the paper "Neural Image Compression with Text-guided Encoding for both Pixel-level and Perceptual Fidelity (ICML 2024)".
