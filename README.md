@@ -55,6 +55,8 @@ python -u generate_images_using_image_cap_dataset.py --image_folder_root (path f
 
 # e.g. python -u generate_mscoco30k.py --image_folder_root /data/MSCOCO/val2014 --checkpoint /checkpoint/pre_trained_ckpt.pth.tar
 ```
+If you want to download checkpoints, click this [link](https://drive.google.com/drive/folders/1zOLRtr3AMJ2KChCDjCeBicI871Pzw28K?usp=drive_link)
+
 
 ## Citation
 ```
