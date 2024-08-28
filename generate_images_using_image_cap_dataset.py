@@ -1,15 +1,17 @@
 import os, sys
-import torch
+import torch, torchvision
 
 from transformers import CLIPTextModel, AutoTokenizer
-from models import TACO
-from config.config import model_config 
-from torchvision import transforms
 import torch.nn.functional as F
-from utils.utils import *
 import lpips
-import torchvision
-from PIL import Image
+
+from config.config import model_config 
+from models import TACO
+from datasets_image_cap import Image_Cap_pair_dataset
+from utils.utils import *
+
+
+from pytorch_msssim import ms_ssim as ms_ssim_func
 
 import json
 import shutil
@@ -124,10 +126,7 @@ def main(argv):
 
     for img_name, image, caption in tqdm(image_caption_dataset, desc=f"compress :") :
     
-        img_path = f'{args.image_folder_root}/{img_name}'
-
-        img = transforms.ToTensor()(Image.open(img_path).convert('RGB')).to(device)
-        x = img.unsqueeze(0)
+        x = image.unsqueeze(0)
 
         _, _, H, W = x.shape
         pad_h = 0
@@ -161,6 +160,14 @@ def main(argv):
         out = net.decompress(strings, shape, text_embeddings)
         x_hat = out["x_hat"].detach().clone()
         x_hat = x_hat[:, :, 0 : original_size[0], 0 : original_size[1]]
+
+        psnr = compute_psnr(x, x_hat)
+        try:
+            ms_ssim = ms_ssim_func(x, x_hat, data_range=1.).item()
+        except:
+            ms_ssim = ms_ssim_func(torchvision.transforms.Resize(256)(x), torchvision.transforms.Resize(256)(x_hat), data_range=1.).item()
+            
+        lpips_score = loss_fn_alex(x, x_hat).item()
             
         print(f'Checkpoint: {params_name}, img_name: {img_name}, Caption: {caption}')
         
@@ -181,10 +188,10 @@ def main(argv):
     data_lpips_best = pd.DataFrame(stat_csv)
     data_lpips_best.to_csv(f'{save_folder}/stat_per_image.csv')
         
-    mean_csv['bpp'] /= len(image_list)
-    mean_csv['psnr'] /= len(image_list)
-    mean_csv['ms_ssim'] /= len(image_list)
-    mean_csv['lpips'] /= len(image_list)
+    mean_csv['bpp'] /= len(image_caption_dataset)
+    mean_csv['psnr'] /= len(image_caption_dataset)
+    mean_csv['ms_ssim'] /= len(image_caption_dataset)
+    mean_csv['lpips'] /= len(image_caption_dataset)
 
     print(f"checkpoint: {params_name}")
 

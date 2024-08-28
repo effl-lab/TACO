@@ -1,15 +1,17 @@
 import os, sys
-import torch
+import torch, torchvision
+import torch.nn.functional as F
+
 
 from transformers import CLIPTextModel, AutoTokenizer
+import lpips
+from PIL import Image
+
 from models import TACO
 from config.config import model_config 
-from torchvision import transforms
-import torch.nn.functional as F
 from utils.utils import *
-import lpips
-import torchvision
-from PIL import Image
+
+from pytorch_msssim import ms_ssim as ms_ssim_func
 
 import json
 import shutil
@@ -128,7 +130,7 @@ def main(argv):
     
         img_path = f'{args.image_folder_root}/{img_name}'
 
-        img = transforms.ToTensor()(Image.open(img_path).convert('RGB')).to(device)
+        img = torchvision.transforms.ToTensor()(Image.open(img_path).convert('RGB')).to(device)
         x = img.unsqueeze(0)
 
         _, _, H, W = x.shape
